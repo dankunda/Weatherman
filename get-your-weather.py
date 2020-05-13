@@ -1,9 +1,49 @@
-import pandas as pd
-import re
-import requests
 from bs4 import BeautifulSoup
+import geonamescache
+import pandas as pd
+import requests
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
-site = requests.get("https://forecast.weather.gov/MapClick.php?lat=40.71455000000003&lon=-74.00713999999994#.XrsVqRNKh24")
+# Get names of US cities by importing city data
+def getCities():
+    gc = geonamescache.GeonamesCache()
+    city_dict = gc.get_cities()
+
+    cities = []
+    for cid, cinfo in city_dict.items():
+        if cinfo.get("countrycode") == "US":
+            cities.append(cinfo.get("name").lower())
+
+# Get valid user input
+def getInput(cities):
+    user_input = str(input("Enter the name of your city to get the forecast: ")).lower()
+    while user_input not in cities:
+        user_input = str(input("City not found. Enter the name of a more populated, nearby city: ")).lower()
+
+
+# Instantiate web driver and proceed with automation
+def navigateToPage(user_input):
+    driver = webdriver.Chrome()
+    driver.get("https://www.weather.gov/")
+
+
+    search = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div[1]/div[1]/div/form/input[1]")
+    search.clear()
+    search.send_keys(user_input)
+    go = driver.find_element_by_id("btnSearch")
+    time.sleep(1)
+    go.click()
+
+time.sleep(2)
+
+
+################################################################################################################################
+site = requests.get(driver.current_url)
 soup = BeautifulSoup(site.content, "html.parser")
 
 week_div = soup.find(id="seven-day-forecast-body")
@@ -38,3 +78,4 @@ weather_data = pd.DataFrame(
 )
 
 #weather_data.to_csv("results.csv")
+print(weather_data)
