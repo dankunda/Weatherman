@@ -93,7 +93,7 @@ def createTable(threetuple):
     print(weather_data)
 
     # Creates a corresponding "(city name).csv" file with the table values
-    #weather_data.to_csv(f"{user_input}.csv")
+    weather_data.to_csv(f"{user_input}.csv")
 
 
 
